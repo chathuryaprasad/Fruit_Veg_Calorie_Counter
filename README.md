@@ -68,26 +68,6 @@ To upload an image file for classification via the Flask API, follow these steps
    - Click the **Send** button to submit the image.
    - The response will return predictions based on the image provided.
    
-### Sample Response:
-After sending the request, the response will contain predictions, such as:
-```json
-{
-    "predictions": [
-        {
-            "label": "beetroot",
-            "probability": 1.0
-        },
-        {
-            "label": "apple",
-            "probability": 0.0
-        },
-        {
-            "label": "banana",
-            "probability": 0.0
-        }
-    ]
-}
-
 
 ![image](https://github.com/user-attachments/assets/6f1ab84c-0f49-449b-a46a-6d9ca8aa16d4)
 
