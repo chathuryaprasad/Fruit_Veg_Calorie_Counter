@@ -48,7 +48,7 @@ The classification model used in this project is a custom-trained MobileNet mode
 It is trained on a dataset of fruits and vegetables, with labels corresponding to various types of produce.
 
 
-### 1. Uploading an Image to the Flask API (via Postman)
+### Flask API Testing (via Postman)
 
 To upload an image file for classification via the Flask API, follow these steps in Postman:
 
