@@ -48,4 +48,48 @@ The classification model used in this project is a custom-trained MobileNet mode
 It is trained on a dataset of fruits and vegetables, with labels corresponding to various types of produce.
 
 
+### 1. Uploading an Image to the Flask API (via Postman)
+
+To upload an image file for classification via the Flask API, follow these steps in Postman:
+
+1. **Set the Request URL**:
+   - Use the URL `http://127.0.0.1:5000/predict` for the Flask backend.
+
+2. **Set the Request Method**:
+   - Choose **POST** as the method.
+
+3. **Set up the Body**:
+   - Go to the **Body** tab in Postman.
+   - Select **form-data**.
+   - For the **Key**, type `file` (this is the key Flask expects for image uploads).
+   - For the **Value**, click **Select Files** and choose the image you want to upload.
+
+4. **Send the Request**:
+   - Click the **Send** button to submit the image.
+   - The response will return predictions based on the image provided.
+   
+### Sample Response:
+After sending the request, the response will contain predictions, such as:
+```json
+{
+    "predictions": [
+        {
+            "label": "beetroot",
+            "probability": 1.0
+        },
+        {
+            "label": "apple",
+            "probability": 0.0
+        },
+        {
+            "label": "banana",
+            "probability": 0.0
+        }
+    ]
+}
+
+
+![image](https://github.com/user-attachments/assets/6f1ab84c-0f49-449b-a46a-6d9ca8aa16d4)
+
+
 
