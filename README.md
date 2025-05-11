@@ -37,9 +37,9 @@ To start the Flask backend, run the following command:
     python app.py
 This will start the Flask server and the model will be ready to receive classification requests.
 
-2. To start the Flask backend, run the following command:
+2. To start streamlit web application, run the following command:
     ```bash
-    python app.py
+    streamlit run main.py
 This will open the Streamlit app in your web browser where you can upload an image of a fruit or vegetable, and the app will predict the calorie content.
 
 ## Model Details
