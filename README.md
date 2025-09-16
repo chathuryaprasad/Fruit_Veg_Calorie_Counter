@@ -22,16 +22,16 @@ To run this application locally, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/fruit-veg-calorie-counter.git
+   git clone https://github.com/chathuryaprasad/Fruit_Veg_Calorie_Counter.git
 2. Navigate to the project directory:
    ```bash
-   cd fruit-veg-calorie-counter
+   cd Fruit_Veg_Calorie_Counter
 3. Install the required dependencies:
    ```bash
    pip install -r requirements.txt
 
 ## Usage
-1. Run Flask API (Backend)
+1. Run Flask API (Backend): 
 To start the Flask backend, run the following command:
     ```bash
     python app.py
