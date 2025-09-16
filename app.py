@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 
 # Load your custom-trained model (ensure it's in the correct path)
-model = tf.keras.models.load_model('models/custom_mobilenet_model.h5')
+model = tf.keras.models.load_model('./models/custom_mobilenet_model.h5', compile=False)
 
 # Define your custom class labels
 class_labels = [

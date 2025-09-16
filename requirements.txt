@@ -1,3 +1,14 @@
-Flask
-tensorflow
+tensorflow==2.20.0
+requests==2.29.0
+beautifulsoup4
+streamlit
 numpy
+Pillow
+flask
+keras~=2.6.0
+tensorflow~=2.6.0
+matplotlib
+
+
+#For model train
+scipy
