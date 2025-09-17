@@ -1,11 +1,22 @@
 import streamlit as st
 import requests
 
+st.set_page_config(
+    page_title="Fruit & Veg Calories Counter",
+    page_icon="🥦",
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
+
 # Title
-st.title("Fruit & Veg Calories Counter")
+st.title("🍎 Fruit & Veg Calories Counter")
+
+st.write(
+    "Upload an image of a fruit or vegetable, and the model will predict its label and confidence."
+)
 
 # File uploader
-uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png"])
+uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png"], key="uploaded_file")
 
 # Function to check the API response
 def check_api_response(image):
@@ -25,18 +36,35 @@ def check_api_response(image):
 # Check the API response if an image is uploaded
 if uploaded_file is not None:
     # Check the API response and status code
-    json_response, status_code = check_api_response(uploaded_file)
+    with st.spinner("Classifying image..."):
+        json_response, status_code = check_api_response(uploaded_file)
     
     if json_response is not None:
         # Display the status code
-        st.write(f"API Status Code: {status_code}")
+        # st.write(f"API Status Code: {status_code}")
         
         # If status code is 200, display the label, otherwise show an error
         if status_code == 200:
             # Extract and display only the label under predictions[0]
-            if 'predictions' in json_response and len(json_response['predictions']) > 0:
-                label = json_response['predictions'][0]['label']
-                st.write(f"Predicted Label: {label}")
+            if 'prediction' in json_response and len(json_response['prediction']) > 0:
+                label = json_response['prediction']['label']
+                probability = json_response['prediction']['probability']
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.image(uploaded_file, caption='Uploaded Image', use_container_width=True)
+                with col2:
+                    st.metric(label="Predicted Label", value=f"{label} 🏷️")
+                    st.metric(label="Confidence", value=f"{probability*100:.2f}%")
+
+                st.success("Prediction completed successfully!")
+                if st.button("Upload Another Image"):
+                # Clear the uploaded file from session state
+                    if "uploaded_file" in st.session_state:
+                        del st.session_state["uploaded_file"]
+                    st.rerun()
+
+
             else:
                 st.error("No predictions found in the API response.")
         else:

@@ -67,6 +67,7 @@ def predict():
         response = {
             'prediction': {'label': label, 'probability': round(score, 2)}
         }
+        print(response)
 
         return jsonify(response)
 
