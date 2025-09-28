@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 import numpy as np
 import tensorflow as tf
-from PIL import Image
+from PIL import Image, ImageEnhance
 import os
+import cv2
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -19,10 +20,70 @@ class_labels = [
     'soy beans', 'spinach', 'sweetcorn', 'sweetpotato', 'tomato', 'turnip', 'watermelon'
 ]
 
+calories_per_100g = {
+    'apple': 52,
+    'banana': 89,
+    'beetroot': 43,
+    'bell pepper': 31,
+    'cabbage': 25,
+    'capsicum': 31,
+    'carrot': 41,
+    'cauliflower': 25,
+    'chilli pepper': 40,
+    'corn': 86,
+    'cucumber': 16,
+    'eggplant': 25,
+    'garlic': 149,
+    'ginger': 80,
+    'grapes': 69,
+    'jalepeno': 29,
+    'kiwi': 61,
+    'lemon': 29,
+    'lettuce': 15,
+    'mango': 60,
+    'onion': 40,
+    'orange': 47,
+    'paprika': 282,
+    'pear': 57,
+    'peas': 81,
+    'pineapple': 50,
+    'pomegranate': 83,
+    'potato': 77,
+    'raddish': 16,
+    'soy beans': 446,
+    'spinach': 23,
+    'sweetcorn': 86,
+    'sweetpotato': 86,
+    'tomato': 18,
+    'turnip': 28,
+    'watermelon': 30
+}
+
+
 # Preprocess the image for MobileNetV2
 def preprocess_image(img_path):
     img = Image.open(img_path).convert('RGB')
+
+    width, height = img.size
+    new_width, new_height = min(width, height), min(width, height)
+    left = (width - new_width) // 2
+    top = (height - new_height) // 2
+    right = left + new_width
+    bottom = top + new_height
+    img = img.crop((left, top, right, bottom))
+
     img = img.resize((224, 224))  # Resize the image to 224x224
+
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(1.1) 
+
+
+    img = ImageEnhance.Sharpness(img).enhance(1.2)  # Slightly sharper
+
+
+    
+
+    
     img_array = np.array(img)  # Convert image to numpy array
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 
@@ -64,8 +125,12 @@ def predict():
         # Optional: remove the uploaded file to save space
         os.remove(img_path)
 
+        # Get calories
+        calories = calories_per_100g.get(label, "Unknown")
+
+
         response = {
-            'prediction': {'label': label, 'probability': round(score, 2)}
+            'prediction': {'label': label, 'probability': round(score, 2), "calories_per_100g": calories}
         }
         print(response)
 
