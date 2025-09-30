@@ -4,9 +4,31 @@ import tensorflow as tf
 from PIL import Image, ImageEnhance
 import os
 import cv2
+from pymongo import MongoClient
+from bson import ObjectId
+from datetime import datetime
 
 # Initialize the Flask app
 app = Flask(__name__)
+
+# MongoDB configuration
+MONGO_URI = "mongodb://localhost:27017"
+DATABASE_NAME = "fruit_veg_calorie_db"
+COLLECTION_NAME = "predictions"
+
+# Initialize MongoDB connection
+try:
+    client = MongoClient(MONGO_URI)
+    db = client[DATABASE_NAME]
+    collection = db[COLLECTION_NAME]
+    # Test the connection
+    client.admin.command('ping')
+    print("Successfully connected to MongoDB!")
+except Exception as e:
+    print(f"Failed to connect to MongoDB: {e}")
+    client = None
+    db = None
+    collection = None
 
 # Load your custom-trained model (ensure it's in the correct path)
 model = tf.keras.models.load_model('./models/custom_mobilenet_model.h5', compile=False)
@@ -164,14 +186,72 @@ def predict():
         # Get calories
         calories = calories_per_100g.get(label, "Unknown")
 
-
         response = {
-            'prediction': {'label': label, 'probability': round(score, 2), "calories_per_100g": calories}
+            'prediction': {'label': label, 'probability': round(score, 2), "calories_per_100g": calories},
+            'timestamp': datetime.now().isoformat(),
+            'filename': file.filename
         }
+        
+        # Save to MongoDB
+        if collection is not None:
+            try:
+                result = collection.insert_one(response.copy())
+                response['_id'] = str(result.inserted_id)
+                print(f"Prediction saved to MongoDB with ID: {result.inserted_id}")
+            except Exception as e:
+                print(f"Failed to save to MongoDB: {e}")
+                # Continue even if MongoDB save fails
+        
         print(response)
-
         return jsonify(response)
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Route to get all saved predictions
+@app.route('/predictions', methods=['GET'])
+def get_all_predictions():
+    try:
+        if collection is None:
+            return jsonify({'error': 'MongoDB connection not available'}), 500
+        
+        # Get all predictions sorted by timestamp (newest first)
+        predictions = list(collection.find({}).sort('timestamp', -1))
+        
+        # Convert ObjectId to string for JSON serialization
+        for prediction in predictions:
+            prediction['_id'] = str(prediction['_id'])
+        
+        response = {
+            'predictions': predictions,
+            'total_count': len(predictions)
+        }
+        
+        return jsonify(response)
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Route to delete a prediction by ID
+@app.route('/predictions/<prediction_id>', methods=['DELETE'])
+def delete_prediction(prediction_id):
+    try:
+        if collection is None:
+            return jsonify({'error': 'MongoDB connection not available'}), 500
+        
+        # Validate ObjectId format
+        try:
+            obj_id = ObjectId(prediction_id)
+        except:
+            return jsonify({'error': 'Invalid prediction ID format'}), 400
+        
+        result = collection.delete_one({'_id': obj_id})
+        
+        if result.deleted_count > 0:
+            return jsonify({'message': 'Prediction deleted successfully'})
+        else:
+            return jsonify({'error': 'Prediction not found'}), 404
+    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
