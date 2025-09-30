@@ -9,6 +9,8 @@ Pillow
 flask
 keras
 matplotlib
+pymongo==4.6.0
+bson
 
 
 #For model train
