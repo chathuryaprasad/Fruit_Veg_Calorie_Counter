@@ -85,13 +85,13 @@ def preprocess_image(img_path):
         y_max = max([y + h for (x, y, w, h) in boxes])
 
         img_np = img_np[y_min:y_max, x_min:x_max]
-        img_copy = img_np.copy()
-        cv2.drawContours(img_copy, contours, -1, (0,255,0), 2)
-        cv2.imshow("Cropped Image", img_copy)
-        cv2.waitKey(0)
-        cv2.imshow("Cropped Image", img_np)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # img_copy = img_np.copy()
+        # cv2.drawContours(img_copy, contours, -1, (0,255,0), 2)
+        # cv2.imshow("Cropped Image", img_copy)
+        # cv2.waitKey(0)
+        # cv2.imshow("Cropped Image", img_np)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
 
     img = Image.fromarray(img_np)
