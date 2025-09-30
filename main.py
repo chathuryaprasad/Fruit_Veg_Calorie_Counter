@@ -49,6 +49,7 @@ if uploaded_file is not None:
             if 'prediction' in json_response and len(json_response['prediction']) > 0:
                 label = json_response['prediction']['label']
                 probability = json_response['prediction']['probability']
+                calories = json_response['prediction']['calories_per_100g']
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -56,6 +57,8 @@ if uploaded_file is not None:
                 with col2:
                     st.metric(label="Predicted Label", value=f"{label} 🏷️")
                     st.metric(label="Confidence", value=f"{probability*100:.2f}%")
+                    st.metric(label="Calories", value=f"{calories:.2f} kcal")
+                    st.write(f"It provides {calories:.2f} kilocalories of energy if you eat 100 grams of {label} ⚡")
 
                 st.success("Prediction completed successfully!")
                 if st.button("Upload Another Image"):

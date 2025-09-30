@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 import numpy as np
 import tensorflow as tf
-from PIL import Image
+from PIL import Image, ImageEnhance
 import os
+import cv2
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -19,10 +20,88 @@ class_labels = [
     'soy beans', 'spinach', 'sweetcorn', 'sweetpotato', 'tomato', 'turnip', 'watermelon'
 ]
 
+calories_per_100g = {
+    'apple': 52,
+    'banana': 89,
+    'beetroot': 43,
+    'bell pepper': 31,
+    'cabbage': 25,
+    'capsicum': 31,
+    'carrot': 41,
+    'cauliflower': 25,
+    'chilli pepper': 40,
+    'corn': 86,
+    'cucumber': 16,
+    'eggplant': 25,
+    'garlic': 149,
+    'ginger': 80,
+    'grapes': 69,
+    'jalepeno': 29,
+    'kiwi': 61,
+    'lemon': 29,
+    'lettuce': 15,
+    'mango': 60,
+    'onion': 40,
+    'orange': 47,
+    'paprika': 282,
+    'pear': 57,
+    'peas': 81,
+    'pineapple': 50,
+    'pomegranate': 83,
+    'potato': 77,
+    'raddish': 16,
+    'soy beans': 446,
+    'spinach': 23,
+    'sweetcorn': 86,
+    'sweetpotato': 86,
+    'tomato': 18,
+    'turnip': 28,
+    'watermelon': 30
+}
+
 # Preprocess the image for MobileNetV2
 def preprocess_image(img_path):
     img = Image.open(img_path).convert('RGB')
+    img_np = np.array(img)
+
+    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if contours:
+        # Sort contours by area (largest first)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+        # Take top 2 contours
+        top_contours = contours[:2]
+
+        # Get bounding boxes for them
+        boxes = [cv2.boundingRect(c) for c in top_contours]
+
+        # Merge bounding boxes into one that covers both objects
+        x_min = min([x for (x, y, w, h) in boxes])
+        y_min = min([y for (x, y, w, h) in boxes])
+        x_max = max([x + w for (x, y, w, h) in boxes])
+        y_max = max([y + h for (x, y, w, h) in boxes])
+
+        img_np = img_np[y_min:y_max, x_min:x_max]
+        img_copy = img_np.copy()
+        cv2.drawContours(img_copy, contours, -1, (0,255,0), 2)
+        cv2.imshow("Cropped Image", img_copy)
+        cv2.waitKey(0)
+        cv2.imshow("Cropped Image", img_np)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+    img = Image.fromarray(img_np)
+
     img = img.resize((224, 224))  # Resize the image to 224x224
+
+    img = adaptive_enhancement(img)
+    img = adaptive_sharpness(img)
+
+    
     img_array = np.array(img)  # Convert image to numpy array
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 
@@ -32,6 +111,24 @@ def preprocess_image(img_path):
     img_array = img_array * 2      # Scale to [-1, 1]
 
     return img_array
+
+def adaptive_enhancement(img):
+    img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+    contrast_score = img_gray.std()  # measure contrast
+    
+    if contrast_score < 40:  # threshold (tune this)
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(1.2)  # boost
+    return img
+
+def adaptive_sharpness(img):
+    img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
+    sharpness_score = cv2.Laplacian(img_gray, cv2.CV_64F).var()
+    
+    if sharpness_score < 100:  # threshold (tune this)
+        img = ImageEnhance.Sharpness(img).enhance(1.3)
+    return img
+
 
 # Function to classify the image and return top prediction
 def classify_image(img_path):
@@ -64,8 +161,12 @@ def predict():
         # Optional: remove the uploaded file to save space
         os.remove(img_path)
 
+        # Get calories
+        calories = calories_per_100g.get(label, "Unknown")
+
+
         response = {
-            'prediction': {'label': label, 'probability': round(score, 2)}
+            'prediction': {'label': label, 'probability': round(score, 2), "calories_per_100g": calories}
         }
         print(response)
 
