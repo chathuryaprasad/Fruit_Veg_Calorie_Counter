@@ -192,8 +192,8 @@ def predict():
             'filename': file.filename
         }
         
-        # Save to MongoDB
-        if collection is not None:
+        # Save to MongoDB only if probability is 80% or higher
+        if collection is not None and score >= 0.8:
             try:
                 result = collection.insert_one(response.copy())
                 response['_id'] = str(result.inserted_id)
@@ -201,6 +201,8 @@ def predict():
             except Exception as e:
                 print(f"Failed to save to MongoDB: {e}")
                 # Continue even if MongoDB save fails
+        elif score < 0.8:
+            print(f"Prediction not saved - probability {round(score, 2)} is below 80% threshold")
         
         print(response)
         return jsonify(response)
