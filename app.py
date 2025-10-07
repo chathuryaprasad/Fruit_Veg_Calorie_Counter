@@ -107,13 +107,6 @@ def preprocess_image(img_path):
         y_max = max([y + h for (x, y, w, h) in boxes])
 
         img_np = img_np[y_min:y_max, x_min:x_max]
-        # img_copy = img_np.copy()
-        # cv2.drawContours(img_copy, contours, -1, (0,255,0), 2)
-        # cv2.imshow("Cropped Image", img_copy)
-        # cv2.waitKey(0)
-        # cv2.imshow("Cropped Image", img_np)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
 
     img = Image.fromarray(img_np)
@@ -138,16 +131,16 @@ def adaptive_enhancement(img):
     img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
     contrast_score = img_gray.std()  # measure contrast
     
-    if contrast_score < 40:  # threshold (tune this)
+    if contrast_score < 40:  
         enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(1.2)  # boost
+        img = enhancer.enhance(1.2)
     return img
 
 def adaptive_sharpness(img):
     img_gray = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2GRAY)
     sharpness_score = cv2.Laplacian(img_gray, cv2.CV_64F).var()
     
-    if sharpness_score < 100:  # threshold (tune this)
+    if sharpness_score < 100:
         img = ImageEnhance.Sharpness(img).enhance(1.3)
     return img
 
